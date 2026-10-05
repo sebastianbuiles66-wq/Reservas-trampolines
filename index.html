@@ -1,0 +1,760 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Reserva tu trampolín</title>
+
+<style>
+:root{
+  color-scheme:light dark;
+  --bg:light-dark(#f4f7f5,#111714);
+  --surface:light-dark(#fff,#1a211d);
+  --surface2:light-dark(#eef5f0,#202a24);
+  --text:light-dark(#17211b,#f3f7f4);
+  --muted:light-dark(#66736b,#aebbb3);
+  --border:light-dark(#dce6df,#334139);
+  --accent:#25b86b;
+  --accent2:#168b50;
+  --danger:#d85c5c;
+  --shadow:0 14px 35px rgba(20,50,35,.09)
+}
+
+*{
+  box-sizing:border-box
+}
+
+body{
+  margin:0;
+  font-family:Inter,ui-sans-serif,system-ui,-apple-system,Segoe UI,sans-serif;
+  background:var(--bg);
+  color:var(--text)
+}
+
+#app{
+  min-height:100vh;
+  background-color:var(--bg)
+}
+
+.hero{
+  padding:34px 20px 28px;
+  background:linear-gradient(135deg,#0f6e42,#22b66a);
+  color:#fff
+}
+
+.hero-inner,.main{
+  max-width:760px;
+  margin:auto
+}
+
+.brand{
+  font-size:13px;
+  font-weight:800;
+  letter-spacing:.08em;
+  text-transform:uppercase;
+  opacity:.85
+}
+
+.hero h1{
+  font-size:clamp(30px,7vw,46px);
+  line-height:1.02;
+  margin:10px 0 8px
+}
+
+.hero p{
+  margin:0;
+  opacity:.9;
+  font-size:15px
+}
+
+.main{
+  padding:20px
+}
+
+.card{
+  background:var(--surface);
+  border:1px solid var(--border);
+  border-radius:20px;
+  padding:20px;
+  box-shadow:var(--shadow);
+  margin-bottom:16px
+}
+
+.step-title{
+  font-size:17px;
+  font-weight:800;
+  margin-bottom:14px;
+  display:flex;
+  gap:10px;
+  align-items:center
+}
+
+.num{
+  width:28px;
+  height:28px;
+  border-radius:50%;
+  display:grid;
+  place-items:center;
+  background:var(--accent);
+  color:#fff;
+  font-size:13px
+}
+
+.grid{
+  display:grid;
+  grid-template-columns:1fr 1fr;
+  gap:12px
+}
+
+.field label{
+  display:block;
+  font-size:12px;
+  font-weight:800;
+  color:var(--muted);
+  margin-bottom:7px
+}
+
+.field input,.field select{
+  width:100%;
+  padding:13px 12px;
+  border-radius:12px;
+  border:1px solid var(--border);
+  background:var(--surface2);
+  color:var(--text);
+  font:inherit;
+  outline:none
+}
+
+.field input:focus,.field select:focus{
+  border-color:var(--accent)
+}
+
+.duration{
+  display:flex;
+  gap:8px;
+  flex-wrap:wrap
+}
+
+.duration button,.slot,.tram{
+  border:1px solid var(--border);
+  background:var(--surface2);
+  color:var(--text);
+  border-radius:13px;
+  padding:12px;
+  cursor:pointer;
+  font:inherit
+}
+
+.duration button.active,.slot.active,.tram.selected{
+  border-color:var(--accent);
+  background:light-dark(#e7f8ee,#183c2b);
+  box-shadow:0 0 0 2px rgba(37,184,107,.15)
+}
+
+.slots{
+  display:grid;
+  grid-template-columns:repeat(4,1fr);
+  gap:8px
+}
+
+.slot{
+  font-weight:700
+}
+
+.tram-grid{
+  display:grid;
+  grid-template-columns:repeat(2,1fr);
+  gap:10px
+}
+
+.tram{
+  text-align:left;
+  padding:14px
+}
+
+.tram .icon{
+  font-size:25px
+}
+
+.tram strong{
+  display:block;
+  margin:4px 0
+}
+
+.available{
+  color:var(--accent2);
+  font-size:12px;
+  font-weight:800
+}
+
+.occupied{
+  color:var(--danger);
+  font-size:12px;
+  font-weight:800
+}
+
+.tram:disabled{
+  cursor:not-allowed;
+  opacity:.65
+}
+
+.summary{
+  background:var(--surface2);
+  border-radius:15px;
+  padding:15px;
+  margin-top:14px
+}
+
+.summary-row{
+  display:flex;
+  justify-content:space-between;
+  gap:10px;
+  padding:5px 0;
+  font-size:14px
+}
+
+.summary-row span:first-child{
+  color:var(--muted)
+}
+
+.cta{
+  width:100%;
+  border:0;
+  border-radius:14px;
+  padding:15px;
+  background:var(--accent);
+  color:#fff;
+  font-size:16px;
+  font-weight:900;
+  cursor:pointer;
+  margin-top:14px
+}
+
+.cta:hover{
+  background:var(--accent2)
+}
+
+.cta:disabled{
+  opacity:.45;
+  cursor:not-allowed
+}
+
+.note{
+  font-size:12px;
+  color:var(--muted);
+  line-height:1.5;
+  margin-top:10px
+}
+
+.success{
+  display:none;
+  text-align:center
+}
+
+.success.show{
+  display:block
+}
+
+.success .check{
+  font-size:48px
+}
+
+.success h2{
+  margin:6px 0
+}
+
+.wa{
+  display:inline-block;
+  text-decoration:none;
+  background:#25d366;
+  color:#fff;
+  font-weight:900;
+  padding:13px 18px;
+  border-radius:13px;
+  margin-top:12px
+}
+
+.reset{
+  background:none;
+  border:0;
+  color:var(--muted);
+  text-decoration:underline;
+  cursor:pointer;
+  margin-top:12px
+}
+
+.hidden{
+  display:none!important
+}
+
+@media(max-width:560px){
+  .grid{
+    grid-template-columns:1fr
+  }
+
+  .slots{
+    grid-template-columns:repeat(3,1fr)
+  }
+
+  .main{
+    padding:14px
+  }
+
+  .card{
+    padding:16px
+  }
+
+  .hero{
+    padding:28px 16px 24px
+  }
+}
+</style>
+</head>
+
+<body>
+
+<div id="app">
+
+<header class="hero">
+  <div class="hero-inner">
+    <div class="brand">JUMPING FITNESS</div>
+    <h1>Reserva tu trampolín</h1>
+    <p>Elige tu horario, selecciona tu trampolín y disfruta tu sesión.</p>
+  </div>
+</header>
+
+<main class="main">
+
+<section class="card" id="bookingCard">
+
+  <div class="step-title">
+    <span class="num">1</span>
+    ¿Cuándo quieres venir?
+  </div>
+
+  <div class="grid">
+
+    <div class="field">
+      <label for="date">FECHA</label>
+      <input id="date" type="date">
+    </div>
+
+    <div class="field">
+      <label for="duration">DURACIÓN</label>
+
+      <select id="duration">
+        <option value="60">1 hora</option>
+        <option value="30">30 minutos</option>
+        <option value="90">1 hora 30 minutos</option>
+      </select>
+
+    </div>
+
+  </div>
+
+  <div style="margin-top:16px" class="field">
+    <label>HORA DE INICIO</label>
+    <div class="slots" id="slots"></div>
+  </div>
+
+</section>
+
+
+<section class="card">
+
+  <div class="step-title">
+    <span class="num">2</span>
+    Elige tu trampolín
+  </div>
+
+  <div class="tram-grid" id="trampolines"></div>
+
+  <p class="note">
+    Los trampolines ocupados se bloquean automáticamente para ese horario.
+  </p>
+
+</section>
+
+
+<section class="card">
+
+  <div class="step-title">
+    <span class="num">3</span>
+    Tus datos
+  </div>
+
+  <div class="grid">
+
+    <div class="field">
+      <label for="name">NOMBRE</label>
+      <input id="name" placeholder="Tu nombre">
+    </div>
+
+    <div class="field">
+      <label for="phone">CELULAR</label>
+      <input id="phone" placeholder="300 000 0000" inputmode="tel">
+    </div>
+
+  </div>
+
+  <div class="summary" id="summary">
+
+    <div class="summary-row">
+      <span>Fecha</span>
+      <strong id="sumDate">—</strong>
+    </div>
+
+    <div class="summary-row">
+      <span>Horario</span>
+      <strong id="sumTime">—</strong>
+    </div>
+
+    <div class="summary-row">
+      <span>Trampolín</span>
+      <strong id="sumTramp">—</strong>
+    </div>
+
+  </div>
+
+  <button class="cta" id="confirm" disabled>
+    Confirmar reserva
+  </button>
+
+  <p class="note">
+    En este prototipo, la confirmación abre WhatsApp con el mensaje listo para enviar al profesor.
+  </p>
+
+</section>
+
+</main>
+
+
+<section class="card success" id="success">
+
+  <div class="check">✅</div>
+
+  <h2>¡Reserva preparada!</h2>
+
+  <p id="successText"></p>
+
+  <a class="wa" id="wa" href="#" target="_blank">
+    Enviar por WhatsApp
+  </a>
+
+  <br>
+
+  <button class="reset" id="reset">
+    Hacer otra reserva
+  </button>
+
+</section>
+
+</div>
+
+
+<script>
+
+const demoBookings = {
+
+  '2026-10-06|15:00|1':true,
+  '2026-10-06|15:00|3':true,
+  '2026-10-07|17:00|2':true,
+  '2026-10-08|18:00|4':true
+
+};
+
+const trampolines = [1,2,3,4,5,6];
+
+const times = [
+  '08:00',
+  '09:00',
+  '10:00',
+  '11:00',
+  '12:00',
+  '14:00',
+  '15:00',
+  '16:00',
+  '17:00',
+  '18:00',
+  '19:00'
+];
+
+let selectedTime = '';
+let selectedTramp = '';
+
+const $ = id => document.getElementById(id);
+
+const today = new Date();
+
+const iso = d => {
+
+  const x = new Date(
+    d.getTime() - d.getTimezoneOffset() * 60000
+  );
+
+  return x.toISOString().slice(0,10);
+
+};
+
+$('date').min = iso(today);
+$('date').value = iso(today);
+
+
+function renderSlots(){
+
+  $('slots').innerHTML = times.map(t =>
+
+    `<button
+      class="slot ${selectedTime === t ? 'active' : ''}"
+      onclick="selectTime('${t}')"
+    >
+      ${t}
+    </button>`
+
+  ).join('');
+
+}
+
+
+function isOccupied(n){
+
+  return !!demoBookings[
+    `${$('date').value}|${selectedTime}|${n}`
+  ];
+
+}
+
+
+function renderTramps(){
+
+  $('trampolines').innerHTML = trampolines.map(n => {
+
+    const occ = !selectedTime || isOccupied(n);
+
+    return `
+
+      <button
+        class="tram ${selectedTramp === String(n) ? 'selected' : ''}"
+        ${occ ? 'disabled' : ''}
+        onclick="selectTramp(${n})"
+      >
+
+        <span class="icon">🤸</span>
+
+        <strong>Trampolín ${n}</strong>
+
+        <span class="${occ ? 'occupied' : 'available'}">
+
+          ${
+            !selectedTime
+            ? 'Elige una hora'
+            : occ
+            ? 'Ocupado'
+            : 'Disponible'
+          }
+
+        </span>
+
+      </button>
+
+    `;
+
+  }).join('');
+
+  updateSummary();
+
+}
+
+
+function selectTime(t){
+
+  selectedTime = t;
+
+  selectedTramp = '';
+
+  renderSlots();
+
+  renderTramps();
+
+}
+
+
+function selectTramp(n){
+
+  selectedTramp = String(n);
+
+  renderTramps();
+
+}
+
+
+function updateSummary(){
+
+  const d = $('date').value;
+
+  $('sumDate').textContent = d
+
+    ? new Date(d + 'T12:00:00').toLocaleDateString(
+        'es-CO',
+        {
+          weekday:'short',
+          day:'numeric',
+          month:'short'
+        }
+      )
+
+    : '—';
+
+
+  $('sumTime').textContent = selectedTime
+
+    ? `${selectedTime} – ${endTime(
+        selectedTime,
+        Number($('duration').value)
+      )}`
+
+    : '—';
+
+
+  $('sumTramp').textContent = selectedTramp
+
+    ? `#${selectedTramp}`
+
+    : '—';
+
+
+  $('confirm').disabled = !(
+    d &&
+    selectedTime &&
+    selectedTramp &&
+    $('name').value.trim() &&
+    $('phone').value.trim()
+  );
+
+}
+
+
+function endTime(t,min){
+
+  const [h,m] = t.split(':').map(Number);
+
+  const x = h * 60 + m + min;
+
+  return `${String(
+    Math.floor(x / 60)
+  ).padStart(2,'0')}:${String(
+    x % 60
+  ).padStart(2,'0')}`;
+
+}
+
+
+$('date').addEventListener('change', () => {
+
+  selectedTime = '';
+
+  selectedTramp = '';
+
+  renderSlots();
+
+  renderTramps();
+
+});
+
+
+$('duration').addEventListener('change', () => {
+
+  updateSummary();
+
+  renderTramps();
+
+});
+
+
+$('name').addEventListener(
+  'input',
+  updateSummary
+);
+
+
+$('phone').addEventListener(
+  'input',
+  updateSummary
+);
+
+
+$('confirm').addEventListener('click', () => {
+
+  const d = $('date').value;
+
+  const pretty = new Date(
+    d + 'T12:00:00'
+  ).toLocaleDateString(
+    'es-CO',
+    {
+      weekday:'long',
+      day:'numeric',
+      month:'long'
+    }
+  );
+
+  const end = endTime(
+    selectedTime,
+    Number($('duration').value)
+  );
+
+
+  const msg =
+    `Hola, quiero confirmar una reserva de trampolín.%0A%0A` +
+
+    `👤 Nombre: ${encodeURIComponent(
+      $('name').value.trim()
+    )}%0A` +
+
+    `📱 Celular: ${encodeURIComponent(
+      $('phone').value.trim()
+    )}%0A` +
+
+    `📅 Fecha: ${encodeURIComponent(
+      pretty
+    )}%0A` +
+
+    `🕒 Horario: ${selectedTime} - ${end}%0A` +
+
+    `🤸 Trampolín: #${selectedTramp}`;
+
+
+  demoBookings[
+    `${d}|${selectedTime}|${selectedTramp}`
+  ] = true;
+
+
+  $('bookingCard').classList.add('hidden');
+
+  $('success').classList.add('show');
+
+
+  $('successText').textContent =
+    `${pretty} · ${selectedTime} a ${end} · Trampolín #${selectedTramp}`;
+
+
+  $('wa').href =
+    `https://wa.me/573000000000?text=${msg}`;
+
+});
+
+
+$('reset').addEventListener(
+  'click',
+  () => location.reload()
+);
+
+
+renderSlots();
+
+renderTramps();
+
+</script>
+
+</body>
+</html>
