@@ -1122,10 +1122,9 @@ const SUPABASE_URL='https://kpqvfmelyodudlxfanok.supabase.co';
 const SUPABASE_ANON_KEY='sb_publishable_kO_KvUy0K7IKhpmbacXM8w_VIr9662e';
 
 const supabaseClient =
-  supabase.createClient(
-    SUPABASE_URL,
-    SUPABASE_ANON_KEY
-  );
+  supabase.createClient(SUPABASE_URL,SUPABASE_ANON_KEY);
+  console.log('SUPABASE_URL:', SUPABASE_URL);
+  console.log('SUPABASE_CLIENT:', supabaseClient);
 
 /* =================================
    RESERVAS DE PRUEBA
