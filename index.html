@@ -866,14 +866,6 @@ body{
           1 hora
         </option>
 
-        <option value="30">
-          30 minutos
-        </option>
-
-        <option value="90">
-          1 hora 30 minutos
-        </option>
-
       </select>
 
     </div>
@@ -1230,6 +1222,8 @@ let selectedTramp = '';
 
 let currentClient = null;
 
+let dayBookings = [];
+
 
 
 /* =================================
@@ -1483,27 +1477,110 @@ function renderSlots(){
    SABER SI UN TRAMPOLÍN ESTÁ OCUPADO
 ================================= */
 
+
 function isOccupied(number){
 
-  return !!demoBookings[
+  if(!selectedTime){
+    return true;
+  }
 
-    `${
-      $('date').value
-    }|${
-      selectedTime
-    }|${
-      number
-    }`
+  const start =
+    timeToMinutes(selectedTime);
 
-  ];
+  const end =
+    start +
+    Number($('duration').value);
+
+  return dayBookings.some(r => {
+
+    if(String(r.trampolin) !== String(number)){
+      return false;
+    }
+
+    const rs =
+      timeToMinutes(
+        String(r.hora).slice(0,5)
+      );
+
+    const re =
+      timeToMinutes(
+        String(r.hora_fin).slice(0,5)
+      );
+
+    return start < re && end > rs;
+
+  });
 
 }
-
 
 
 /* =================================
    MOSTRAR TRAMPOLINES
 ================================= */
+function timeToMinutes(t){
+
+  const [h,m] =
+    t.split(':').map(Number);
+
+  return h * 60 + m;
+
+}
+
+async function loadBookings(){
+
+  const date =
+    $('date').value;
+
+  if(!date){
+    dayBookings = [];
+    renderTramps();
+    return;
+  }
+
+  const {
+    data,
+    error
+  } =
+    await supabaseClient
+      .from('Reservas')
+      .select(
+        'Id_cliente,Fecha_reserva,Hora_Inicio,Hora_fin,Trampolin'
+      )
+      .eq(
+        'Fecha_reserva',
+        date
+      );
+
+  if(error){
+
+    console.error(
+      'Error al consultar Reservas:',
+      error
+    );
+
+    dayBookings = [];
+
+  }else{
+
+    dayBookings =
+      (data || []).map(r => ({
+
+        trampolin:
+          r.Trampolin,
+
+        hora:
+          r.Hora_Inicio,
+
+        hora_fin:
+          r.Hora_fin
+
+      }));
+
+  }
+
+  renderTramps();
+
+}
 
 function renderTramps(){
 
@@ -1591,7 +1668,7 @@ function renderTramps(){
    SELECCIONAR HORA
 ================================= */
 
-function selectTime(time){
+async function selectTime(time){
 
   selectedTime =
     time;
@@ -1601,7 +1678,7 @@ function selectTime(time){
 
   renderSlots();
 
-  renderTramps();
+  await loadBookings();
 
 }
 
@@ -1760,7 +1837,7 @@ function endTime(
 $('date')
   .addEventListener(
     'change',
-    () => {
+    async () => {
 
       selectedTime =
         '';
@@ -1770,7 +1847,7 @@ $('date')
 
       renderSlots();
 
-      renderTramps();
+      await loadBookings();
 
     }
   );
