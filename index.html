@@ -1114,33 +1114,27 @@ body{
 
 
 
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+
 <script>
 
+const SUPABASE_URL='https://kpqvfmelyodudlxfanok.supabase.co/rest/v1/';
+const SUPABASE_ANON_KEY='sb_publishable_kO_KvUy0K7IKhpmbacXM8w_VIr9662e';
+
+const supabaseClient =
+  supabase.createClient(
+    SUPABASE_URL,
+    SUPABASE_ANON_KEY
+  );
 
 /* =================================
    RESERVAS DE PRUEBA
 ================================= */
 
-/*const demoBookings = {
-
-  '2026-10-06|15:00|1': true,
-
-  '2026-10-06|15:00|3': true,
-
-  '2026-10-07|17:00|2': true,
-
-  '2026-10-08|18:00|4': true
-
-};*/
 
 
 
-/* =================================
-   CLIENTES DE PRUEBA
 
-   Más adelante estos datos
-   vendrán de la base de datos.
-================================= */
 
 const demoClients = {
 
@@ -1286,7 +1280,7 @@ $('date').value =
 
 async function verifyClient(){
 
-  // Tomamos el ID escrito por el cliente
+  // 1. Tomamos el ID que escribió el cliente
   const id =
     $('clientId')
       .value
@@ -1294,7 +1288,7 @@ async function verifyClient(){
       .toUpperCase();
 
 
-  // Si no escribió ningún ID
+  // 2. Comprobamos que haya escrito algo
   if(!id){
 
     $('idMessage').textContent =
@@ -1305,27 +1299,14 @@ async function verifyClient(){
   }
 
 
-  // Avisamos que estamos consultando la base de datos
+  // 3. Mostramos que estamos consultando la base de datos
   $('idMessage').textContent =
     'Consultando tus datos...';
 
 
   try{
 
-    /*
-      BUSCAMOS EL CLIENTE EN LA TABLA Clientes
-
-      La estructura real es:
-
-      Clientes
-      ├── Id
-      ├── Nombre
-      └── Celular
-
-      Por eso NO usamos nombre/telefono.
-      Usamos exactamente los nombres de tus columnas.
-    */
-
+    // 4. Buscamos el ID directamente en la tabla Clientes
     const {
       data: client,
       error
@@ -1333,24 +1314,24 @@ async function verifyClient(){
       await supabaseClient
         .from('Clientes')
         .select('Id,Nombre,Celular')
-        .eq('Id', id)
+        .eq('Id',id)
         .maybeSingle();
 
 
-    // Si Supabase devuelve un error
+    // 5. Si Supabase encontró un problema
     if(error){
 
-      console.error(error);
+      console.error('Error en Clientes:',error);
 
       $('idMessage').textContent =
-        'No fue posible consultar tu ID.';
+        'No fue posible consultar el ID.';
 
       return;
 
     }
 
 
-    // Si no encontramos el ID
+    // 6. Si el ID no existe
     if(!client){
 
       $('idMessage').textContent =
@@ -1361,13 +1342,7 @@ async function verifyClient(){
     }
 
 
-    /*
-      EL CLIENTE EXISTE
-
-      Ahora guardamos sus datos para utilizarlos
-      durante todo el proceso de reserva.
-    */
-
+    // 7. Guardamos los datos encontrados
     currentClient = {
 
       id:
@@ -1382,76 +1357,62 @@ async function verifyClient(){
     };
 
 
-    /*
-      Mostramos los datos obtenidos
-      directamente desde la base de datos.
-    */
-
+    // 8. Mostramos el nombre obtenido de la BD
     $('clientName').textContent =
       currentClient.name;
 
 
+    // 9. Mostramos el celular obtenido de la BD
     $('clientPhone').textContent =
       currentClient.phone;
 
 
+    // 10. Mostramos los mismos datos en la confirmación
     $('bookingName').textContent =
       currentClient.name;
-
 
     $('bookingPhone').textContent =
       currentClient.phone;
 
 
-    /*
-      Por ahora dejamos el contador en 0.
-
-      En el siguiente paso lo vamos a reemplazar
-      por un conteo real de la tabla Reservas,
-      utilizando:
-
-      Reservas.Id_cliente
-      =
-      Clientes.Id
-    */
-
+    // 11. Por ahora dejamos el contador en 0
     $('clientReservations').textContent =
       '0';
 
 
-    // Mensaje de éxito
+    // 12. Mostramos mensaje de éxito
     $('idMessage').textContent =
       'ID verificado correctamente. Ya puedes realizar tu reserva.';
 
 
-    // Ocultamos el formulario de identificación
+    // 13. Ocultamos la tarjeta para ingresar el ID
     $('loginCard')
       .classList
       .add('hidden');
 
 
-    // Mostramos el sistema de reservas
+    // 14. Mostramos el panel del cliente
     $('customerPanel')
       .classList
       .remove('hidden');
 
 
-    // Actualizamos el resumen
+    // 15. Actualizamos el resumen
     updateSummary();
 
   }
 
   catch(error){
 
-    console.error(error);
+    // Si ocurre un error inesperado
+    console.error('Error general:',error);
 
     $('idMessage').textContent =
-      'Ocurrió un error al consultar tus datos.';
+      'Ocurrió un error al consultar tus datos. Inténtalo nuevamente.';
 
   }
 
 }
-
 /* =================================
    BOTÓN VERIFICAR
 ================================= */
