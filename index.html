@@ -1284,9 +1284,9 @@ $('date').value =
    VERIFICAR CLIENTE
 ================================= */
 
-function verifyClient(){
+async function verifyClient(){
 
-
+  // Tomamos el ID escrito por el cliente
   const id =
     $('clientId')
       .value
@@ -1294,76 +1294,186 @@ function verifyClient(){
       .toUpperCase();
 
 
-  const client =
-    demoClients[id];
-
-
-  /* Si el ID no existe */
-
-  if(!client){
+  // Si no escribió nada
+  if(!id){
 
     $('idMessage').textContent =
-      'ID no encontrado. Verifica el número e inténtalo nuevamente.';
+      'Ingresa tu ID para continuar.';
 
     return;
 
   }
 
 
-  /* Guardamos el cliente actual */
-
-  currentClient = {
-
-    id,
-    ...client
-
-  };
-
-
-  /* Mostramos sus datos */
-
-  $('clientName').textContent =
-    client.name;
-
-
-  $('clientPhone').textContent =
-    client.phone;
-
-
-  $('clientReservations').textContent =
-    client.reservations;
-
-
-  $('bookingName').textContent =
-    client.name;
-
-
-  $('bookingPhone').textContent =
-    client.phone;
-
-
+  // Mostramos que estamos consultando la base de datos
   $('idMessage').textContent =
-    'ID verificado correctamente. Ya puedes realizar tu reserva.';
+    'Consultando tus datos...';
 
 
-  /* Ocultamos login */
+  try{
 
-  $('loginCard')
-    .classList
-    .add('hidden');
+    /*
+      Buscamos el cliente en Supabase.
+
+      Tabla:
+        clientes
+
+      Columnas:
+        id
+        nombre
+        telefono
+    */
+
+    const {
+      data: client,
+      error
+    } =
+      await supabaseClient
+        .from('clientes')
+        .select('id,nombre,telefono')
+        .eq('id',id)
+        .maybeSingle();
 
 
-  /* Mostramos el sistema */
+    // Si Supabase devuelve un error
+    if(error){
 
-  $('customerPanel')
-    .classList
-    .remove('hidden');
+      console.error(error);
+
+      $('idMessage').textContent =
+        'No fue posible consultar el ID. Revisa la conexión con Supabase.';
+
+      return;
+
+    }
 
 
-  updateSummary();
+    // Si el ID no existe en la tabla clientes
+    if(!client){
+
+      $('idMessage').textContent =
+        'ID no encontrado. Verifica el número e inténtalo nuevamente.';
+
+      return;
+
+    }
+
+
+    /*
+      Ahora contamos cuántas reservas
+      tiene este cliente.
+
+      Tabla:
+        reservas
+
+      Relación:
+        reservas.cliente_id
+        =
+        clientes.id
+    */
+
+    const {
+      count,
+      error: reservationError
+    } =
+      await supabaseClient
+        .from('reservas')
+        .select('*',{
+          count:'exact',
+          head:true
+        })
+        .eq('cliente_id',id);
+
+
+    // Si hubo problema contando las reservas
+    if(reservationError){
+
+      console.error(reservationError);
+
+    }
+
+
+    /*
+      Guardamos la información del cliente
+      en una variable que utilizaremos
+      durante toda la reserva.
+    */
+
+    currentClient = {
+
+      id:
+        client.id,
+
+      name:
+        client.nombre,
+
+      phone:
+        client.telefono,
+
+      reservations:
+        count || 0
+
+    };
+
+
+    // Mostramos el nombre
+    $('clientName').textContent =
+      currentClient.name;
+
+
+    // Mostramos el teléfono
+    $('clientPhone').textContent =
+      currentClient.phone;
+
+
+    // Mostramos cantidad de reservas
+    $('clientReservations').textContent =
+      currentClient.reservations;
+
+
+    // También mostramos los datos
+    // en la sección de confirmación
+
+    $('bookingName').textContent =
+      currentClient.name;
+
+
+    $('bookingPhone').textContent =
+      currentClient.phone;
+
+
+    // Mensaje de éxito
+    $('idMessage').textContent =
+      'ID verificado correctamente. Ya puedes realizar tu reserva.';
+
+
+    // Ocultamos la tarjeta del ID
+    $('loginCard')
+      .classList
+      .add('hidden');
+
+
+    // Mostramos el sistema de reservas
+    $('customerPanel')
+      .classList
+      .remove('hidden');
+
+
+    // Actualizamos el resumen
+    updateSummary();
+
+  }
+
+  catch(error){
+
+    console.error(error);
+
+    $('idMessage').textContent =
+      'Ocurrió un error al consultar tus datos. Inténtalo nuevamente.';
+
+  }
 
 }
-
 
 
 /* =================================
