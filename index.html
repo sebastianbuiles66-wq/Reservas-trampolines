@@ -1121,7 +1121,7 @@ body{
    RESERVAS DE PRUEBA
 ================================= */
 
-const demoBookings = {
+/*const demoBookings = {
 
   '2026-10-06|15:00|1': true,
 
@@ -1131,7 +1131,7 @@ const demoBookings = {
 
   '2026-10-08|18:00|4': true
 
-};
+};*/
 
 
 
@@ -1294,7 +1294,7 @@ async function verifyClient(){
       .toUpperCase();
 
 
-  // Si no escribió nada
+  // Si no escribió ningún ID
   if(!id){
 
     $('idMessage').textContent =
@@ -1305,7 +1305,7 @@ async function verifyClient(){
   }
 
 
-  // Mostramos que estamos consultando la base de datos
+  // Avisamos que estamos consultando la base de datos
   $('idMessage').textContent =
     'Consultando tus datos...';
 
@@ -1313,15 +1313,17 @@ async function verifyClient(){
   try{
 
     /*
-      Buscamos el cliente en Supabase.
+      BUSCAMOS EL CLIENTE EN LA TABLA Clientes
 
-      Tabla:
-        clientes
+      La estructura real es:
 
-      Columnas:
-        id
-        nombre
-        telefono
+      Clientes
+      ├── Id
+      ├── Nombre
+      └── Celular
+
+      Por eso NO usamos nombre/telefono.
+      Usamos exactamente los nombres de tus columnas.
     */
 
     const {
@@ -1329,9 +1331,9 @@ async function verifyClient(){
       error
     } =
       await supabaseClient
-        .from('clientes')
-        .select('id,nombre,telefono')
-        .eq('id',id)
+        .from('Clientes')
+        .select('Id,Nombre,Celular')
+        .eq('Id', id)
         .maybeSingle();
 
 
@@ -1341,14 +1343,14 @@ async function verifyClient(){
       console.error(error);
 
       $('idMessage').textContent =
-        'No fue posible consultar el ID. Revisa la conexión con Supabase.';
+        'No fue posible consultar tu ID.';
 
       return;
 
     }
 
 
-    // Si el ID no existe en la tabla clientes
+    // Si no encontramos el ID
     if(!client){
 
       $('idMessage').textContent =
@@ -1360,79 +1362,38 @@ async function verifyClient(){
 
 
     /*
-      Ahora contamos cuántas reservas
-      tiene este cliente.
+      EL CLIENTE EXISTE
 
-      Tabla:
-        reservas
-
-      Relación:
-        reservas.cliente_id
-        =
-        clientes.id
-    */
-
-    const {
-      count,
-      error: reservationError
-    } =
-      await supabaseClient
-        .from('reservas')
-        .select('*',{
-          count:'exact',
-          head:true
-        })
-        .eq('cliente_id',id);
-
-
-    // Si hubo problema contando las reservas
-    if(reservationError){
-
-      console.error(reservationError);
-
-    }
-
-
-    /*
-      Guardamos la información del cliente
-      en una variable que utilizaremos
-      durante toda la reserva.
+      Ahora guardamos sus datos para utilizarlos
+      durante todo el proceso de reserva.
     */
 
     currentClient = {
 
       id:
-        client.id,
+        client.Id,
 
       name:
-        client.nombre,
+        client.Nombre,
 
       phone:
-        client.telefono,
-
-      reservations:
-        count || 0
+        client.Celular
 
     };
 
 
-    // Mostramos el nombre
+    /*
+      Mostramos los datos obtenidos
+      directamente desde la base de datos.
+    */
+
     $('clientName').textContent =
       currentClient.name;
 
 
-    // Mostramos el teléfono
     $('clientPhone').textContent =
       currentClient.phone;
 
-
-    // Mostramos cantidad de reservas
-    $('clientReservations').textContent =
-      currentClient.reservations;
-
-
-    // También mostramos los datos
-    // en la sección de confirmación
 
     $('bookingName').textContent =
       currentClient.name;
@@ -1442,12 +1403,28 @@ async function verifyClient(){
       currentClient.phone;
 
 
+    /*
+      Por ahora dejamos el contador en 0.
+
+      En el siguiente paso lo vamos a reemplazar
+      por un conteo real de la tabla Reservas,
+      utilizando:
+
+      Reservas.Id_cliente
+      =
+      Clientes.Id
+    */
+
+    $('clientReservations').textContent =
+      '0';
+
+
     // Mensaje de éxito
     $('idMessage').textContent =
       'ID verificado correctamente. Ya puedes realizar tu reserva.';
 
 
-    // Ocultamos la tarjeta del ID
+    // Ocultamos el formulario de identificación
     $('loginCard')
       .classList
       .add('hidden');
@@ -1469,12 +1446,11 @@ async function verifyClient(){
     console.error(error);
 
     $('idMessage').textContent =
-      'Ocurrió un error al consultar tus datos. Inténtalo nuevamente.';
+      'Ocurrió un error al consultar tus datos.';
 
   }
 
 }
-
 
 /* =================================
    BOTÓN VERIFICAR
