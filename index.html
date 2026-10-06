@@ -1873,36 +1873,180 @@ $('duration')
     }
   );
 
+async function saveReservation(){
 
+  // Verificamos que tengamos los datos necesarios
+  if(
+    !currentClient ||
+    !selectedTime ||
+    !selectedTramp
+  ){
+    return;
+  }
+
+  // Datos de la reserva
+  const date =
+    $('date').value;
+
+  const duration =
+    Number(
+      $('duration').value
+    );
+
+  // Convertimos la hora de inicio
+  // a minutos para poder hacer cálculos
+  const start =
+    timeToMinutes(
+      selectedTime
+    );
+
+  // Calculamos cuándo termina
+  const finish =
+    start +
+    duration;
+
+  // Avisamos visualmente que estamos guardando
+  $('confirm').disabled =
+    true;
+
+  $('confirm').textContent =
+    'Guardando reserva...';
+
+  try{
+
+    // Buscamos reservas existentes
+    // para ese día y ese trampolín
+    const {
+      data: existing,
+      error: checkError
+    } =
+      await supabaseClient
+        .from('Reservas')
+        .select(
+          'Id_cliente,Fecha_reserva,Hora_Inicio,Hora_fin,Trampolin'
+        )
+        .eq(
+          'Fecha_reserva',
+          date
+        )
+        .eq(
+          'Trampolin',
+          Number(selectedTramp)
+        );
+
+    if(checkError){
+      throw checkError;
+    }
+
+    // Revisamos si existe algún cruce de horarios
+    const conflict =
+      (existing || []).some(r => {
+
+        const reservationStart =
+          timeToMinutes(
+            String(
+              r.Hora_Inicio
+            ).slice(0,5)
+          );
+
+        const reservationEnd =
+          timeToMinutes(
+            String(
+              r.Hora_fin
+            ).slice(0,5)
+          );
+
+        return (
+          start < reservationEnd &&
+          finish > reservationStart
+        );
+
+      });
+
+    // Si alguien ocupó el trampolín mientras tanto
+    if(conflict){
+
+      alert(
+        'Ese trampolín acaba de ser ocupado. Selecciona otro.'
+      );
+
+      await loadBookings();
+
+      $('confirm').disabled =
+        false;
+
+      $('confirm').textContent =
+        'Confirmar reserva';
+
+      return;
+    }
+
+    // AQUÍ finalmente guardamos la reserva
+    const {
+      error
+    } =
+      await supabaseClient
+        .from('Reservas')
+        .insert({
+
+          Id_cliente:
+            currentClient.id,
+
+          Fecha_reserva:
+            date,
+
+          Hora_Inicio:
+            selectedTime,
+
+          Hora_fin:
+            endTime(
+              selectedTime,
+              duration
+            ),
+
+          Trampolin:
+            Number(selectedTramp)
+
+        });
+
+    if(error){
+      throw error;
+    }
+
+    console.log(
+      'Reserva guardada correctamente'
+    );
+
+  }catch(error){
+
+    console.error(
+      'Error al guardar reserva:',
+      error
+    );
+
+    alert(
+      'No se pudo guardar la reserva. Revisa la conexión con Supabase.'
+    );
+
+    $('confirm').disabled =
+      false;
+
+    $('confirm').textContent =
+      'Confirmar reserva';
+
+  }
+
+}
 
 /* =================================
    CONFIRMAR RESERVA
 ================================= */
 
-$('confirm')
-  .addEventListener(
-    'click',
-    () => {
-
-
-      const date =
-        $('date').value;
-
-
-      const prettyDate =
-
-        new Date(
-          date +
-          'T12:00:00'
-        )
-        .toLocaleDateString(
-          'es-CO',
-          {
-            weekday:'long',
-            day:'numeric',
-            month:'long'
-          }
-        );
+    $('confirm')
+      .addEventListener(
+        'click',
+        saveReservation
+      );
 
 
       const end =
