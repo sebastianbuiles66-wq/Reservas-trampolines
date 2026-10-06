@@ -1544,7 +1544,7 @@ async function loadBookings(){
     await supabaseClient
       .from('Reservas')
       .select(
-        'Id_cliente,Fecha_reserva,Hora_Inicio,Hora_fin,Trampolin'
+        'Id_cliente,Fecha_reserva,Hora_inicio,Hora_fin,Trampolin'
       )
       .eq(
         'Fecha_reserva',
@@ -1572,7 +1572,7 @@ async function loadBookings(){
           r.Trampolin,
 
         hora:
-          r.Hora_Inicio,
+          r.Hora_inicio,
 
         hora_fin:
           r.Hora_fin
@@ -1923,7 +1923,7 @@ async function saveReservation(){
       await supabaseClient
         .from('Reservas')
         .select(
-          'Id_cliente,Fecha_reserva,Hora_Inicio,Hora_fin,Trampolin'
+          'Id_cliente,Fecha_reserva,Hora_inicio,Hora_fin,Trampolin'
         )
         .eq(
           'Fecha_reserva',
@@ -1945,7 +1945,7 @@ async function saveReservation(){
         const reservationStart =
           timeToMinutes(
             String(
-              r.Hora_Inicio
+              r.Hora_inicio
             ).slice(0,5)
           );
 
@@ -1995,7 +1995,7 @@ async function saveReservation(){
           Fecha_reserva:
             date,
 
-          Hora_Inicio:
+          Hora_inicio:
             selectedTime,
 
           Hora_fin:
