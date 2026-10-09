@@ -1282,68 +1282,68 @@ $('date').value =
   iso(today);
 
 
-async function loadClientReservations(){
+async function loadClientReservations() {
 
   $('reservationsList').textContent =
     'Consultando tus reservas...';
 
   $('reservationsMessage').textContent = '';
 
-  try{
+  try {
 
-    const { data, error } =
-      await supabaseClient
-        .from('Reservas')
-        .select(
-          'Fecha_reserva,Hora_inicio,Hora_fin,Trampolin'
-        )
-        .eq(
-          'Id_cliente',
-          currentClient.id
-        )
-        .order(
-          'Fecha_reserva',
-          { ascending: false }
-        );
+    // 1. Comprobar qué cliente estamos consultando
+    console.log('CLIENTE ACTUAL:', currentClient);
+    console.log('ID BUSCADO EN RESERVAS:', currentClient?.id);
 
-    if(error){
+    if (!currentClient || !currentClient.id) {
+      throw new Error('No hay un cliente identificado.');
+    }
+
+    // 2. Consultar las reservas relacionadas con ese cliente
+    const { data, error } = await supabaseClient
+      .from('Reservas')
+      .select(
+        'Id_cliente,Fecha_reserva,Hora_inicio,Hora_fin,Trampolin'
+      )
+      .eq('Id_cliente', currentClient.id)
+      .order('Fecha_reserva', { ascending: false });
+
+    // 3. Mostrar el resultado real en la consola
+    console.log('DATOS DE RESERVAS:', data);
+    console.log('ERROR DE SUPABASE:', error);
+
+    if (error) {
       throw error;
     }
 
     const reservations = data || [];
 
-    // Actualizamos la cantidad real de reservas
-    currentClient.reservations =
-      reservations.length;
+    // 4. Actualizar el contador con el número real de reservas
+    currentClient.reservations = reservations.length;
 
     $('clientReservations').textContent =
       reservations.length;
 
-    // Si todavía no tiene reservas
-    if(reservations.length === 0){
-
+    // 5. Mostrar un mensaje si no existen reservas
+    if (reservations.length === 0) {
       $('reservationsList').textContent =
         'Todavía no tienes reservas registradas.';
 
       return;
     }
 
-    // Mostramos las reservas encontradas
+    // 6. Dibujar las reservas en pantalla
     $('reservationsList').innerHTML =
       reservations.map(r => {
 
-        const date =
-          new Date(
-            r.Fecha_reserva + 'T12:00:00'
-          ).toLocaleDateString(
-            'es-CO',
-            {
-              weekday: 'long',
-              day: 'numeric',
-              month: 'long',
-              year: 'numeric'
-            }
-          );
+        const date = new Date(
+          r.Fecha_reserva + 'T12:00:00'
+        ).toLocaleDateString('es-CO', {
+          weekday: 'long',
+          day: 'numeric',
+          month: 'long',
+          year: 'numeric'
+        });
 
         return `
           <div class="summary">
@@ -1355,9 +1355,9 @@ async function loadClientReservations(){
             <div class="summary-row">
               <span>Horario</span>
               <strong>
-                ${String(r.Hora_inicio).slice(0,5)}
+                ${String(r.Hora_inicio).slice(0, 5)}
                 a
-                ${String(r.Hora_fin).slice(0,5)}
+                ${String(r.Hora_fin).slice(0, 5)}
               </strong>
             </div>
 
@@ -1370,19 +1370,18 @@ async function loadClientReservations(){
 
       }).join('');
 
-  }catch(error){
+  } catch (error) {
 
-    console.error(
-      'Error al consultar las reservas del cliente:',
-      error
-    );
+    console.error('ERROR AL CARGAR RESERVAS:', error);
 
     $('reservationsList').textContent =
-      'No fue posible consultar tus reservas. Inténtalo nuevamente.';
+      'No fue posible consultar tus reservas.';
 
+    $('reservationsMessage').textContent =
+      error.message || 'Error desconocido al consultar Supabase.';
   }
-
 }
+
 
 
 /* =================================
