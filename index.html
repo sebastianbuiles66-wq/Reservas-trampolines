@@ -814,11 +814,27 @@ body{
 
 </section>
 
+<section class="card" id="reservationsCard">
+  <div class="step-title">
+    <span class="num">2</span>
+    Mis reservas
+  </div>
 
+  <div id="reservationsList">
+    Consultando tus reservas...
+  </div>
+
+  <p class="note" id="reservationsMessage"></p>
+
+  <button class="cta" id="newReservation">
+    Hacer una nueva reserva
+  </button>
+</section>
 
 <!-- =========================
      FECHA Y HORA
 ========================= -->
+<div id="bookingFlow" class="hidden">
 
 <section
   class="card"
@@ -1047,7 +1063,7 @@ body{
 
 
 </div>
-
+</div>
 
 </main>
 
@@ -1266,6 +1282,108 @@ $('date').value =
   iso(today);
 
 
+async function loadClientReservations(){
+
+  $('reservationsList').textContent =
+    'Consultando tus reservas...';
+
+  $('reservationsMessage').textContent = '';
+
+  try{
+
+    const { data, error } =
+      await supabaseClient
+        .from('Reservas')
+        .select(
+          'Fecha_reserva,Hora_inicio,Hora_fin,Trampolin'
+        )
+        .eq(
+          'Id_cliente',
+          currentClient.id
+        )
+        .order(
+          'Fecha_reserva',
+          { ascending: false }
+        );
+
+    if(error){
+      throw error;
+    }
+
+    const reservations = data || [];
+
+    // Actualizamos la cantidad real de reservas
+    currentClient.reservations =
+      reservations.length;
+
+    $('clientReservations').textContent =
+      reservations.length;
+
+    // Si todavía no tiene reservas
+    if(reservations.length === 0){
+
+      $('reservationsList').textContent =
+        'Todavía no tienes reservas registradas.';
+
+      return;
+    }
+
+    // Mostramos las reservas encontradas
+    $('reservationsList').innerHTML =
+      reservations.map(r => {
+
+        const date =
+          new Date(
+            r.Fecha_reserva + 'T12:00:00'
+          ).toLocaleDateString(
+            'es-CO',
+            {
+              weekday: 'long',
+              day: 'numeric',
+              month: 'long',
+              year: 'numeric'
+            }
+          );
+
+        return `
+          <div class="summary">
+            <div class="summary-row">
+              <span>Fecha</span>
+              <strong>${date}</strong>
+            </div>
+
+            <div class="summary-row">
+              <span>Horario</span>
+              <strong>
+                ${String(r.Hora_inicio).slice(0,5)}
+                a
+                ${String(r.Hora_fin).slice(0,5)}
+              </strong>
+            </div>
+
+            <div class="summary-row">
+              <span>Trampolín</span>
+              <strong>#${r.Trampolin}</strong>
+            </div>
+          </div>
+        `;
+
+      }).join('');
+
+  }catch(error){
+
+    console.error(
+      'Error al consultar las reservas del cliente:',
+      error
+    );
+
+    $('reservationsList').textContent =
+      'No fue posible consultar tus reservas. Inténtalo nuevamente.';
+
+  }
+
+}
+
 
 /* =================================
    VERIFICAR CLIENTE
@@ -1389,6 +1507,8 @@ async function verifyClient(){
       .classList
       .remove('hidden');
 
+      await loadClientReservations();
+
 
     // 15. Actualizamos el resumen
     updateSummary();
@@ -1415,6 +1535,20 @@ $('verifyId')
     'click',
     verifyClient
   );
+
+  $('newReservation')
+  .addEventListener('click', () => {
+
+    $('bookingFlow')
+      .classList
+      .remove('hidden');
+
+    $('bookingFlow').scrollIntoView({
+      behavior: 'smooth',
+      block: 'start'
+    });
+
+  });
 
 
 
