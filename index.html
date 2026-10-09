@@ -1068,7 +1068,7 @@ body{
 
 
   <h2>
-    ¡Reserva preparada!
+    ¡Reserva realizada!
   </h2>
 
 
@@ -2015,6 +2015,14 @@ async function saveReservation(){
 
     console.log(
       'Reserva guardada correctamente'
+    );
+
+    alert(
+      '✅ ¡Reserva realizada con éxito!\n\n' +
+      'Fecha: ' + date + '\n' +
+      'Horario: ' + selectedTime + ' a ' +
+      endTime(selectedTime, duration) + '\n' +
+      'Trampolín #' + selectedTramp
     );
 
   }catch(error){
